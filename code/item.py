@@ -35,6 +35,17 @@ class Item(Resource):
     connection.commit()
     connection.close()
 
+  @classmethod
+  def update_item(cls, item):
+    connection = sqlite3.connect('data.db')
+    cursor = connection.cursor()
+
+    query = "UPDATE items SET price=? WHERE name=?"
+    cursor.execute(query, (item['price'], item['name']))
+
+    connection.commit()
+    connection.close()
+
   def get(self, name):
     item = self.find_by_name(name)
     if item:
@@ -46,7 +57,6 @@ class Item(Resource):
       return {'message': 'An item with name "{}" already exists.'.format(name)}, 400
     
     data = self.parser.parse_args()
-
     item = {'name':name, 'price':data['price']}
 
     try:
@@ -57,14 +67,22 @@ class Item(Resource):
     return item, 201
 
   def put(self, name):
-    data = Item.parser.parse_args()
+    data = self.parser.parse_args()
 
-    item = next(filter(lambda x: x['name'] == name, items), None)
+    item = self.find_by_name(name)
+    updated_item = {'name':name, 'price':data['price']}
+
     if item is None:
-      items.append({'name': name, 'price': data['price']})
+      try:
+        self.insert_item(updated_item)
+      except:
+        return {"messsage": "An error occurred while inserting an item"}, 500
     else:
-      item.update(data)
-    return item
+      try:
+        self.update_item(updated_item)
+      except:
+        return {"messsage": "An error occurred while updating an item"}, 500
+    return updated_item
   
   #@jwt_required() # requires jwt authentication header
   def delete(self, name):
@@ -80,4 +98,16 @@ class Item(Resource):
     
 class ItemList(Resource):
   def get(self):
-    return {'items': items}
+    connection = sqlite3.connect('data.db')
+    cursor = connection.cursor()
+
+    query = "SELECT * FROM items"
+    result = cursor.execute(query,)
+    items = []
+    for row in result:
+      items.append({'name': row[0], 'price': row[1]})
+
+    connection.commit()
+    connection.close()
+
+    return {'items': items}, 200
