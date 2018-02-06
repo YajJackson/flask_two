@@ -3,6 +3,7 @@ from flask_restful import Resource, Api, reqparse
 from flask_jwt import JWT, jwt_required
 
 from security import authenticate, identity
+from user import UserRegiser
 
 app = Flask(__name__)
 app.secret_key = 'yaj' # should be secure
@@ -56,5 +57,6 @@ class ItemList(Resource):
 
 api.add_resource(Item, '/item/<name>')
 api.add_resource(ItemList, '/items')
+api.add_resource(UserRegiser, '/register')
 
 app.run(port=5000, debug=True)
