@@ -24,6 +24,17 @@ class Item(Resource):
     if row:
       return {'item': {'name': row[0], 'price': row[1]}}
 
+  @classmethod
+  def insert_item(cls, item):
+    connection = sqlite3.connect('data.db')
+    cursor = connection.cursor()
+
+    query = "INSERT INTO items VALUES (?, ?)"
+    cursor.execute(query, (item['name'], item['price']))
+
+    connection.commit()
+    connection.close()
+
   def get(self, name):
     item = self.find_by_name(name)
     if item:
@@ -38,14 +49,10 @@ class Item(Resource):
 
     item = {'name':name, 'price':data['price']}
 
-    connection = sqlite3.connect('data.db')
-    cursor = connection.cursor()
-
-    query = "INSERT INTO items VALUES (?, ?)"
-    cursor.execute(query, (item['name'], item['price']))
-
-    connection.commit()
-    connection.close()
+    try:
+      self.insert_item(item)
+    except:
+      return {"message": "An error occurred while inserting the item."}, 500
 
     return item, 201
 
