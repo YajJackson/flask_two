@@ -16,4 +16,5 @@ api.add_resource(Item, '/item/<name>')
 api.add_resource(ItemList, '/items')
 api.add_resource(UserRegiser, '/register')
 
-app.run(port=5000, debug=True)
+if __name__ == '__main__': # prevents app.run from running when importing app.py
+  app.run(port=5000, debug=True)
